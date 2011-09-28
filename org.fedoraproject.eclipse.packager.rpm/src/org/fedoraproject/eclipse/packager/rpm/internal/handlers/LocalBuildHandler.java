@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.fedoraproject.eclipse.packager.rpm.internal.handlers;
 
+import java.util.List;
+
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IResource;
@@ -20,7 +22,6 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Shell;
-import org.fedoraproject.eclipse.packager.BranchConfigInstance;
 import org.fedoraproject.eclipse.packager.FedoraPackagerLogger;
 import org.fedoraproject.eclipse.packager.FedoraPackagerPreferencesConstants;
 import org.fedoraproject.eclipse.packager.FedoraPackagerText;
@@ -43,13 +44,15 @@ import org.fedoraproject.eclipse.packager.rpm.api.RpmBuildCommand.BuildType;
 import org.fedoraproject.eclipse.packager.rpm.api.errors.RpmBuildCommandException;
 import org.fedoraproject.eclipse.packager.utils.FedoraHandlerUtils;
 import org.fedoraproject.eclipse.packager.utils.FedoraPackagerUtils;
+import org.fedoraproject.eclipse.packager.utils.RPMUtils;
 
 /**
  * Handler for building locally.
- * 
+ *
  */
 public class LocalBuildHandler extends FedoraPackagerAbstractHandler {
 
+	
 	@Override
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		final Shell shell = getShell(event);
@@ -77,27 +80,24 @@ public class LocalBuildHandler extends FedoraPackagerAbstractHandler {
 					.getCommandInstance(RpmBuildCommand.ID);
 		} catch (FedoraPackagerCommandNotFoundException e) {
 			logger.logError(e.getMessage(), e);
-			FedoraHandlerUtils.showErrorDialog(shell, fedoraProjectRoot
-					.getProductStrings().getProductName(), e.getMessage());
+			FedoraHandlerUtils.showErrorDialog(shell,
+					fedoraProjectRoot.getProductStrings().getProductName(), e.getMessage());
 			return null;
 		} catch (FedoraPackagerCommandInitializationException e) {
 			logger.logError(e.getMessage(), e);
-			FedoraHandlerUtils.showErrorDialog(shell, fedoraProjectRoot
-					.getProductStrings().getProductName(), e.getMessage());
+			FedoraHandlerUtils.showErrorDialog(shell,
+					fedoraProjectRoot.getProductStrings().getProductName(), e.getMessage());
 			return null;
 		}
-		Job job = new Job(fedoraProjectRoot.getProductStrings()
-				.getProductName()) {
+		Job job = new Job(fedoraProjectRoot.getProductStrings().getProductName()) {
 
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				final String downloadUrlPreference = PackagerPlugin
-						.getStringPreference(FedoraPackagerPreferencesConstants.PREF_LOOKASIDE_DOWNLOAD_URL);
+				.getStringPreference(FedoraPackagerPreferencesConstants.PREF_LOOKASIDE_DOWNLOAD_URL);
 				// Make sure we have sources locally
-				Job downloadSourcesJob = new DownloadSourcesJob(
-						RpmText.LocalBuildHandler_downloadSourcesForLocalBuild,
-						download, fedoraProjectRoot, shell,
-						downloadUrlPreference, true);
+				Job downloadSourcesJob = new DownloadSourcesJob(RpmText.LocalBuildHandler_downloadSourcesForLocalBuild,
+						download, fedoraProjectRoot, shell, downloadUrlPreference, true);
 				downloadSourcesJob.setUser(true);
 				downloadSourcesJob.schedule();
 				try {
@@ -111,8 +111,7 @@ public class LocalBuildHandler extends FedoraPackagerAbstractHandler {
 					return downloadSourcesJob.getResult();
 				}
 				// Do the local build
-				Job rpmBuildjob = new Job(fedoraProjectRoot.getProductStrings()
-						.getProductName()) {
+				Job rpmBuildjob = new Job(fedoraProjectRoot.getProductStrings().getProductName()) {
 					@Override
 					protected IStatus run(IProgressMonitor monitor) {
 						try {
@@ -121,13 +120,12 @@ public class LocalBuildHandler extends FedoraPackagerAbstractHandler {
 									IProgressMonitor.UNKNOWN);
 							IFpProjectBits projectBits = FedoraPackagerUtils
 									.getVcsHandler(fedoraProjectRoot);
-							BranchConfigInstance bci = projectBits
-									.getBranchConfig();
+							List<String> distDefines = RPMUtils
+									.getDistDefines(projectBits);
 							try {
 								rpmBuild.buildType(BuildType.BINARY)
-										.branchConfig(bci).call(monitor);
-								fedoraProjectRoot.getProject().refreshLocal(
-										IResource.DEPTH_INFINITE, monitor);
+										.distDefines(distDefines).call(monitor);
+								fedoraProjectRoot.getProject().refreshLocal(IResource.DEPTH_INFINITE, monitor);
 							} catch (CommandMisconfiguredException e) {
 								// This shouldn't happen, but report error
 								// anyway
@@ -157,7 +155,7 @@ public class LocalBuildHandler extends FedoraPackagerAbstractHandler {
 								return FedoraHandlerUtils.errorStatus(
 										RPMPlugin.PLUGIN_ID, e.getMessage(),
 										e.getCause());
-							} catch (OperationCanceledException e) {
+							} catch (OperationCanceledException e){
 								FedoraHandlerUtils
 										.showErrorDialog(
 												shell,
@@ -180,7 +178,7 @@ public class LocalBuildHandler extends FedoraPackagerAbstractHandler {
 				}
 				return rpmBuildjob.getResult();
 			}
-
+			
 		};
 		// Suppress UI progress reporting. This is done by sub-jobs within.
 		job.setSystem(true);

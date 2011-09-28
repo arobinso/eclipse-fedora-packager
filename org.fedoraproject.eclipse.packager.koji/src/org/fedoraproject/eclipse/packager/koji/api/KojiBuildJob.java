@@ -18,7 +18,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
-import org.fedoraproject.eclipse.packager.BranchConfigInstance;
 import org.fedoraproject.eclipse.packager.FedoraPackagerLogger;
 import org.fedoraproject.eclipse.packager.FedoraPackagerPreferencesConstants;
 import org.fedoraproject.eclipse.packager.FedoraPackagerText;
@@ -70,7 +69,6 @@ public class KojiBuildJob extends Job {
 	@Override
 	protected IStatus run(IProgressMonitor monitor) {
 		IFpProjectBits projectBits = FedoraPackagerUtils.getVcsHandler(fedoraProjectRoot);
-		BranchConfigInstance bci = projectBits.getBranchConfig();
 		FedoraPackagerLogger logger = FedoraPackagerLogger.getInstance();
 		FedoraPackager fp = new FedoraPackager(fedoraProjectRoot);
 		KojiBuildCommand kojiBuildCmd;
@@ -97,7 +95,7 @@ public class KojiBuildJob extends Job {
 		// check for unpushed changes prior calling command
 		kojiBuildCmd.addCommandListener(unpushedChangesListener);
 		// tag sources if user wishes; TagSourcesListener takes care of this
-		TagSourcesListener tagSources = new TagSourcesListener(fedoraProjectRoot, monitor, shell, bci);
+		TagSourcesListener tagSources = new TagSourcesListener(fedoraProjectRoot, monitor, shell);
 		kojiBuildCmd.addCommandListener(tagSources);
 		IKojiHubClient kojiClient;
 		try {
@@ -113,17 +111,17 @@ public class KojiBuildJob extends Job {
 		}
 		kojiBuildCmd.setKojiClient(kojiClient);
 		kojiBuildCmd.sourceLocation(projectBits
-				.getScmUrlForKoji(fedoraProjectRoot, bci));
+				.getScmUrlForKoji(fedoraProjectRoot));
 		String nvr;
 		try {
-			nvr = RPMUtils.getNVR(fedoraProjectRoot, bci);
+			nvr = RPMUtils.getNVR(fedoraProjectRoot);
 		} catch (IOException e) {
 			logger.logError(KojiText.KojiBuildHandler_errorGettingNVR,
 					e);
 			return FedoraHandlerUtils.errorStatus(KojiPlugin.PLUGIN_ID,
 					KojiText.KojiBuildHandler_errorGettingNVR, e);
 		}
-		kojiBuildCmd.buildTarget(bci.getBuildTarget()).nvr(nvr)
+		kojiBuildCmd.buildTarget(projectBits.getTarget()).nvr(nvr)
 				.isScratchBuild(isScratch);
 		logger.logDebug(NLS.bind(FedoraPackagerText.callingCommand,
 				KojiBuildCommand.class.getName()));

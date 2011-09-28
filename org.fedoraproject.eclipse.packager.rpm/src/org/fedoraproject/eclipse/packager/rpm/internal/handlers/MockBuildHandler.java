@@ -86,9 +86,7 @@ public class MockBuildHandler extends FedoraPackagerAbstractHandler {
 			srpmPath = new Path(srpm);
 		}
 		Job job = new MockBuildJob(fedoraProjectRoot.getProductStrings()
-				.getProductName(), shell, fedoraProjectRoot, srpmPath,
-				FedoraPackagerUtils.getVcsHandler(fedoraProjectRoot)
-						.getBranchConfig());
+				.getProductName(), shell, fedoraProjectRoot, srpmPath);
 		job.setSystem(true); // Suppress UI. That's done in sub-jobs within.
 		job.schedule();
 		return null;

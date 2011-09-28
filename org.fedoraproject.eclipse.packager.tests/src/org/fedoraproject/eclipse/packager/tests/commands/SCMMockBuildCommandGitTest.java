@@ -17,7 +17,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.fedoraproject.eclipse.packager.BranchConfigInstance;
 import org.fedoraproject.eclipse.packager.IProjectRoot;
 import org.fedoraproject.eclipse.packager.api.DownloadSourceCommand;
 import org.fedoraproject.eclipse.packager.api.FedoraPackager;
@@ -49,13 +48,10 @@ public class SCMMockBuildCommandGitTest {
 	private FedoraPackager packager;
 	// download source command
 	private DownloadSourceCommand download;
-	private BranchConfigInstance bci;
 
 	@Before
 	public void setUp() throws Exception {
 		this.testProject = new GitTestProject("eclipse-fedorapackager");
-		// switch to F15
-		testProject.checkoutBranch("f15");
 		this.fpRoot = FedoraPackagerUtils.getProjectRoot((this.testProject
 				.getProject()));
 		this.packager = new FedoraPackager(fpRoot);
@@ -63,7 +59,8 @@ public class SCMMockBuildCommandGitTest {
 		download = (DownloadSourceCommand) packager
 				.getCommandInstance(DownloadSourceCommand.ID);
 		download.call(new NullProgressMonitor());
-		bci = FedoraPackagerUtils.getVcsHandler(fpRoot).getBranchConfig();
+		// switch to F15
+		testProject.checkoutBranch("f15");
 	}
 
 	@After
@@ -87,7 +84,7 @@ public class SCMMockBuildCommandGitTest {
 				.useRepoPath(
 						fpRoot.getContainer().getParent().getRawLocation()
 								.toString()).useRepoType(RepoType.GIT)
-				.useSpec(fpRoot.getSpecFile().getName()).branchConfig(bci)
+				.useSpec(fpRoot.getSpecFile().getName())
 				.call(new NullProgressMonitor());
 		assertTrue(result.wasSuccessful());
 		String resultDirectoryPath = result.getResultDirectoryPath();

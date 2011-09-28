@@ -20,9 +20,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.osgi.util.NLS;
-import org.fedoraproject.eclipse.packager.BranchConfigInstance;
 import org.fedoraproject.eclipse.packager.FedoraPackagerLogger;
 import org.fedoraproject.eclipse.packager.FedoraPackagerText;
+import org.fedoraproject.eclipse.packager.IFpProjectBits;
 import org.fedoraproject.eclipse.packager.IProjectRoot;
 import org.fedoraproject.eclipse.packager.api.errors.CommandListenerException;
 import org.fedoraproject.eclipse.packager.api.errors.CommandMisconfiguredException;
@@ -31,6 +31,8 @@ import org.fedoraproject.eclipse.packager.rpm.RpmText;
 import org.fedoraproject.eclipse.packager.rpm.api.RpmBuildCommand.BuildType;
 import org.fedoraproject.eclipse.packager.rpm.api.errors.RpmBuildCommandException;
 import org.fedoraproject.eclipse.packager.utils.FedoraHandlerUtils;
+import org.fedoraproject.eclipse.packager.utils.FedoraPackagerUtils;
+import org.fedoraproject.eclipse.packager.utils.RPMUtils;
 
 /**
  * A job for SRPM builds.
@@ -42,21 +44,18 @@ public class SRPMBuildJob extends Job {
 	private IProjectRoot fedoraProjectRoot;
 	private FedoraPackagerLogger logger;
 	private RpmBuildResult srpmBuildResult;
-	private BranchConfigInstance bci;
 	
 	/**
 	 * @param jobName
 	 * @param rpmBuild
 	 * @param fedoraProjectRoot
-	 * @param bci 
 	 */
 	public SRPMBuildJob(String jobName, RpmBuildCommand rpmBuild,
-			IProjectRoot fedoraProjectRoot, BranchConfigInstance bci) {
+			IProjectRoot fedoraProjectRoot) {
 		super(jobName);
 		this.fedoraProjectRoot = fedoraProjectRoot;
 		this.logger = FedoraPackagerLogger.getInstance();
 		this.srpmBuild = rpmBuild;
-		this.bci = bci;
 	}
 
 	@Override
@@ -70,8 +69,11 @@ public class SRPMBuildJob extends Job {
 			nodeps.add(RpmBuildCommand.NO_DEPS);
 			// want SRPM build
 			srpmBuild.buildType(BuildType.SOURCE).flags(nodeps);
-			// set branch config
-			srpmBuild.branchConfig(bci);
+			// set dist-defines
+			IFpProjectBits projectBits = FedoraPackagerUtils
+					.getVcsHandler(fedoraProjectRoot);
+			List<String> distDefines = RPMUtils.getDistDefines(projectBits);
+			srpmBuild.distDefines(distDefines);
 			logger.logDebug(NLS.bind(RpmText.MockBuildHandler_creatingSrpm,
 					fedoraProjectRoot.getPackageName()));
 			try {

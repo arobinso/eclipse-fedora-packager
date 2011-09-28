@@ -25,17 +25,15 @@ import org.fedoraproject.eclipse.packager.rpm.api.SCMMockBuildJob;
 import org.fedoraproject.eclipse.packager.utils.FedoraHandlerUtils;
 import org.fedoraproject.eclipse.packager.utils.FedoraPackagerUtils;
 import org.fedoraproject.eclipse.packager.rpm.api.SCMMockBuildCommand.RepoType;
-
 /**
  * Handler for building locally using mock with SCM.
- * 
+ *
  */
 public class SCMMockBuildHandler extends FedoraPackagerAbstractHandler {
 
 	protected Shell shell;
 	protected IProjectRoot fedoraProjectRoot;
 	protected MockBuildCommand mockBuild;
-
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		shell = getShell(event);
@@ -50,10 +48,7 @@ public class SCMMockBuildHandler extends FedoraPackagerAbstractHandler {
 					FedoraPackagerText.invalidFedoraProjectRootError);
 			return null;
 		}
-		Job job = new SCMMockBuildJob(fedoraProjectRoot.getProductStrings()
-				.getProductName(), shell, fedoraProjectRoot, RepoType.GIT,
-				FedoraPackagerUtils.getVcsHandler(fedoraProjectRoot)
-						.getBranchConfig());
+		Job job = new SCMMockBuildJob(fedoraProjectRoot.getProductStrings().getProductName(), shell, fedoraProjectRoot, RepoType.GIT);
 		job.setSystem(true); // Suppress UI. That's done in sub-jobs within.
 		job.schedule();
 		return null;

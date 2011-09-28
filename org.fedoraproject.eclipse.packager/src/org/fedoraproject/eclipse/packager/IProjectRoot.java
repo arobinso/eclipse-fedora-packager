@@ -38,9 +38,8 @@ public interface IProjectRoot {
 	 *             {@code productNamesProvider} are required for this
 	 *             initialization to work.
 	 */
-	public void initialize(IContainer container, ProjectType type)
-			throws FedoraPackagerExtensionPointException;
-
+	public void initialize(IContainer container, ProjectType type) throws FedoraPackagerExtensionPointException;
+	
 	/**
 	 * Returns the root container. This may be different from the project this
 	 * container may be a member of.
@@ -48,7 +47,7 @@ public interface IProjectRoot {
 	 * @return The root container.
 	 */
 	public IContainer getContainer();
-
+	
 	/**
 	 * Get the project containing this IProjectRoot.
 	 * 
@@ -62,7 +61,7 @@ public interface IProjectRoot {
 	 * @return The sources file.
 	 */
 	public SourcesFile getSourcesFile();
-
+	
 	/**
 	 * Returns the name of the package (i.e. the name of the SRPM)
 	 * 
@@ -94,8 +93,7 @@ public interface IProjectRoot {
 	/**
 	 * Get the ignore file based on the project type.
 	 * 
-	 * @return The ignore file. For now this is {@code .cvsignore} or
-	 *         {@code .gitignore}.
+	 * @return The ignore file. For now this is {@code .cvsignore} or {@code .gitignore}.
 	 */
 	public IFile getIgnoreFile();
 
@@ -103,7 +101,7 @@ public interface IProjectRoot {
 	 * @return the lookAsideCache
 	 */
 	public ILookasideCache getLookAsideCache();
-
+	
 	/**
 	 * 
 	 * @return the product strings mapper.
@@ -120,29 +118,23 @@ public interface IProjectRoot {
 	 * @return the list of qualified names this project root supports.
 	 */
 	public QualifiedName[] getSupportedProjectPropertyNames();
-
+	
 	/**
 	 * Get a list of NVRs this package produces. I.e. the list of NVRs as
 	 * contained in the filename of each binary RPM which gets produced by this
 	 * package (i.e. SRPM).
 	 * 
-	 * @param bci
-	 *            The branch configuration containing version info for this
-	 *            branch.
-	 * 
 	 * @return The list of N-V-Rs sorted in ascending order.
 	 */
-	public String[] getPackageNVRs(BranchConfigInstance bci);
-
+	public String[] getPackageNVRs();
+	
 	/**
 	 * Validates a non-initialized version of the implementing IProjectRoot.
 	 * 
-	 * @param candidate
-	 *            The container which should be validated.
+	 * @param candidate The container which should be validated.
 	 * @return {@code true} if the container is valid. {@code false} otherwise.
 	 */
 	public boolean validate(IContainer candidate);
-
 	/**
 	 * 
 	 * @return the plugin associated with this project

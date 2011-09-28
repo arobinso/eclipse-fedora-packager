@@ -25,7 +25,6 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
-import org.fedoraproject.eclipse.packager.BranchConfigInstance;
 import org.fedoraproject.eclipse.packager.FedoraPackagerLogger;
 import org.fedoraproject.eclipse.packager.IProjectRoot;
 import org.fedoraproject.eclipse.packager.api.FedoraPackagerCommand;
@@ -62,9 +61,8 @@ public class RpmBuildCommand extends FedoraPackagerCommand<RpmBuildResult> {
 	private List<String> fullRpmBuildCommand;
 	private List<String> buildTypeFlags;
 	private BuildType buildType;
-	private List<String> flags;
-	private BranchConfigInstance bci;
 	private List<String> distDefines;
+	private List<String> flags;
 	
 	/**
 	 * The build type.
@@ -109,20 +107,22 @@ public class RpmBuildCommand extends FedoraPackagerCommand<RpmBuildResult> {
 	}
 	
 	/**
-	 * Set the current branch configuration.
+	 * Set the distribution specific defines.
 	 * 
-	 * @param bci
-	 * @return This instance.
+	 * @param distDefines
+	 * @return This instance
+	 * @throws IllegalArgumentException If {@code null} was passed.
 	 */
-	public RpmBuildCommand branchConfig(BranchConfigInstance bci){
-		if (bci == null){
+	public RpmBuildCommand distDefines(List<String> distDefines)
+			throws IllegalArgumentException {
+		if (distDefines == null) {
 			throw new IllegalArgumentException(
-					RpmText.RpmBuildCommand_branchConfigNullError);
+					RpmText.RpmBuildCommand_distDefinesNullError);
 		}
-		this.bci = bci;
-		distDefines = RPMUtils.getDistDefines(bci);
+		this.distDefines = distDefines;
 		return this;
 	}
+	
 	/**
 	 * Set some additional flags.
 	 * 
@@ -151,9 +151,6 @@ public class RpmBuildCommand extends FedoraPackagerCommand<RpmBuildResult> {
 		// built type is the only required config
 		if (buildTypeFlags == null) {
 			throw new CommandMisconfiguredException(RpmText.RpmBuildCommand_buildTypeRequired);
-		} 
-		if (bci == null){
-			throw new CommandMisconfiguredException(RpmText.RpmBuildCommand_NoBranchConfig);
 		}
 	}
 
@@ -237,7 +234,7 @@ public class RpmBuildCommand extends FedoraPackagerCommand<RpmBuildResult> {
 			// search for noarch directive, otherwise use local arch
 			String arch;
 			try {
-				arch = RPMUtils.rpmQuery(this.projectRoot, "ARCH", bci); //$NON-NLS-1$
+				arch = RPMUtils.rpmQuery(this.projectRoot, "ARCH"); //$NON-NLS-1$
 			} catch (IOException e) {
 				throw new RpmBuildCommandException(e.getMessage(), e);
 			}
